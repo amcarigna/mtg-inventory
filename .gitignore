@@ -1,0 +1,5 @@
+.venv/
+.idea/
+__pycache__/
+default-cards-20260907090537.jsonl
+default-cards-20260907090537.jsonl.gz
