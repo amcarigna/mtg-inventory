@@ -1,5 +1,6 @@
 .venv/
 .idea/
 __pycache__/
-bulk-data/
+sets.json
+bulk_data.jsonl.gz
 scratch-paper.ipynb
