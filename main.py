@@ -31,6 +31,15 @@ def get_bulk_data():
         print('bulk data not saved to bulk_data/bulk_data.jsonl')
 
 
+def search_card_name(name):
+    local_file = 'bulk-data/bulk_data.jsonl.gz'
+    gfile = gzip.open(local_file, 'rb')
+    results = []
+    for line in gfile:
+        card = json.loads(line)
+        if card['name'] == name:
+            results.append(card)
+    return results
 # jfile = open('bulk-data/default-cards-20260907090537.jsonl', 'r')
 # count = 0
 # for line in jfile:
@@ -42,4 +51,7 @@ def get_bulk_data():
 # jfile.close()
 
 if __name__ == '__main__':
-    get_bulk_data()
+    #get_bulk_data()
+    results = search_card_name('Cultivate')
+    print(results)
+    print(len(results))
