@@ -58,21 +58,31 @@ def get_sets():
         print('sets not saved')
 
 
-def search_card(name, id=None, set=None, collector_number=None):
+def search_bulk_data(name, **kwargs):
+    name = name.lower().strip(",'-")
+    best_results = []
+    other_results = []
+    if (len(name) < 3) and (len(kwargs) == 0):
+        print('error: name is too short, try again')
+        return best_results, other_results
     local_file = 'scryfall-data/bulk_data.jsonl.gz'
-    gfile = gzip.open(local_file, 'rb')
-    results = []
-    for line in gfile:
-        card = json.loads(line)
-        if card['name'] == name:
-            results.append(card)
-    gfile.close()
-    return results
+    file = gzip.open(local_file, 'rb')
+    for line in file:
+        card_dict = json.loads(line)
+        if name in card_dict['name'].lower().strip(",'-"):
+            other_results.append(card_dict)
+            test_dict = {key: card_dict[key] for key in kwargs.keys()}
+            if (name == card_dict['name'].lower().strip(",'-")) or ((len(kwargs) > 0) and (test_dict == kwargs)):
+                best_results.append(card_dict)
+    file.close()
+    if len(best_results) > 0:
+        return best_results
+    return other_results
 
 
 if __name__ == '__main__':
     # get_bulk_data()
-    results = search_card("Eladamri's Call")
+    results = search_bulk_data("", set='ltr')
     for card in results:
         print(card['name'], card['id'], card['set'], card['collector_number'], card['prices'])
     print(len(results))
