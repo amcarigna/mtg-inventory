@@ -4,6 +4,12 @@ import json, os, requests, gzip, string
 def get_bulk_data(debug=False):
     print('\nremoving old bulk data...')
     folder = 'scryfall-data'
+    try:
+        os.mkdir(folder)
+    except FileExistsError:
+        print(f"{folder} directory found")
+    else:
+        print(f"{folder} created")
     extension = '.jsonl.gz'
     for file in os.listdir(folder):
         if file.endswith(extension):
@@ -44,6 +50,12 @@ def get_bulk_data(debug=False):
 def get_sets(debug=False):
     print('\nremoving old sets...')
     folder = 'scryfall-data'
+    try:
+        os.mkdir(folder)
+    except FileExistsError:
+        print(f"{folder} directory found")
+    else:
+        print(f"{folder} created")
     extension = '.json'
     for file in os.listdir(folder):
         if file.endswith(extension):
@@ -137,14 +149,14 @@ def best_result(list_of_dicts):
 
 
 if __name__ == '__main__':
-    best_results, other_results = search_bulk_data("cultivate")
-    for card in best_results:
-        print(card['name'], card['id'], card['set'], card['collector_number'], card['released_at'])
-    print(len(best_results))
-    print(best_result(best_results))
-    # test_card = get_bulk_data(debug=True)
+    # best_results, other_results = search_bulk_data("cultivate")
+    # for card in best_results:
+    #     print(card['name'], card['id'], card['set'], card['collector_number'], card['released_at'])
+    # print(len(best_results))
+    # print(best_result(best_results))
+    test_card = get_bulk_data(debug=True)
     # print(test_card)
-    # test_sets = get_sets(debug=True)
+    test_sets = get_sets(debug=True)
     # print(test_set)
     # set_types = set()
     # for test_set in test_sets:
