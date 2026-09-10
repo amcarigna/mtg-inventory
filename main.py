@@ -1,4 +1,4 @@
-import json, os, requests, gzip
+import json, os, requests, gzip, string
 
 
 def get_bulk_data():
@@ -58,40 +58,73 @@ def get_sets():
         print('sets not saved')
 
 
+def clean_str(str):
+    return ''.join(char for char in str if char not in string.punctuation).lower()
+
+
 def search_bulk_data(name, **kwargs):
-    name = name.lower().strip(",'-")
+    name = clean_str(name)
+    if (len(name) < 3) and (len(kwargs) == 0):
+        best_results = []
+        other_results = []
+        print('error: name is too short, try again')
+    elif len(name) >= 3:
+        local_file = 'scryfall-data/bulk_data.jsonl.gz'
+        file = gzip.open(local_file, 'rb')
+        best_results, other_results = search_name(file, name, **kwargs)
+        file.close()
+    else:
+        local_file = 'scryfall-data/bulk_data.jsonl.gz'
+        file = gzip.open(local_file, 'rb')
+        best_results, other_results = search_kwargs(file, name, **kwargs)
+        file.close()
+    return best_results, other_results
+
+
+def search_name(file, name, **kwargs):
     best_results = []
     other_results = []
-    if (len(name) < 3) and (len(kwargs) == 0):
-        print('error: name is too short, try again')
-        return best_results, other_results
-    local_file = 'scryfall-data/bulk_data.jsonl.gz'
-    file = gzip.open(local_file, 'rb')
     for line in file:
         card_dict = json.loads(line)
-        if name in card_dict['name'].lower().strip(",'-"):
+        if name in clean_str(card_dict['name']):
             other_results.append(card_dict)
+    for card_dict in other_results:
+        if name == clean_str(card_dict['name']):
+            best_results.append(card_dict)
+    other_results = [dict for dict in other_results if dict not in best_results]
+    if kwargs:
+        for card_dict in best_results:
             test_dict = {key: card_dict[key] for key in kwargs.keys()}
-            if (name == card_dict['name'].lower().strip(",'-")) or ((len(kwargs) > 0) and (test_dict == kwargs)):
-                best_results.append(card_dict)
-    file.close()
-    if len(best_results) > 0:
-        return best_results
-    return other_results
+            if test_dict != kwargs:
+                other_results.append(card_dict)
+    best_results = [dict for dict in best_results if dict not in other_results]
+    other_results = other_results[::-1]
+    return best_results, other_results
+
+
+def search_kwargs(file, name, **kwargs):
+    best_results = []
+    other_results = []
+    for line in file:
+        card_dict = json.loads(line)
+        test_dict = {key: card_dict[key] for key in kwargs.keys()}
+        if test_dict == kwargs:
+            other_results.append(card_dict)
+    for card_dict in other_results:
+        if name in clean_str(card_dict['name']):
+            best_results.append(card_dict)
+    other_results = [dict for dict in other_results if dict not in best_results]
+    return best_results, other_results
+
+
+def get_lowest_price(list_of_dicts):
+    # released_at is the date key
+    return list_of_dicts
 
 
 if __name__ == '__main__':
-    # get_bulk_data()
-    results = search_bulk_data("", set='ltr')
-    for card in results:
+    best_results, other_results = search_bulk_data("opt")
+    for card in best_results:
         print(card['name'], card['id'], card['set'], card['collector_number'], card['prices'])
-    print(len(results))
-    # get_sets()
-    # local_file = 'scryfall-data/sets.json'
-    # file = open(local_file, 'rt')
-    # sets = file.read()
-    # file.close()
-    # sets = json.loads(sets)
-    # for set in sets['data']:
-    #     if set['code'] == 'lea':
-    #         print(set)
+    print(len(best_results))
+    print(get_lowest_price(best_results))
