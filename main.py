@@ -1,7 +1,7 @@
 import json, os, requests, gzip, string
 
 
-def get_bulk_data():
+def get_bulk_data(debug=False):
     print('\nremoving old bulk data...')
     folder = 'scryfall-data'
     extension = '.jsonl.gz'
@@ -29,11 +29,19 @@ def get_bulk_data():
         file.write(uri_response.content)
         file.close()
         print(f'\tbulk data saved to {local_file}')
+        if debug:
+            file = gzip.open(local_file, 'rb')
+            for line in file:
+                test = json.loads(line)
+                break
+            file.close()
+            return test
     else:
         print('bulk data not saved')
+    return None
 
 
-def get_sets():
+def get_sets(debug=False):
     print('\nremoving old sets...')
     folder = 'scryfall-data'
     extension = '.json'
@@ -54,8 +62,11 @@ def get_sets():
         file.write(response.text)
         file.close()
         print(f'\tsets saved to {local_file}')
+        if debug:
+            return json.loads(response.text)['data']
     else:
         print('sets not saved')
+    return None
 
 
 def clean_str(str):
@@ -117,14 +128,25 @@ def search_kwargs(file, name, **kwargs):
     return best_results, other_results
 
 
-def get_lowest_price(list_of_dicts):
-    # released_at is the date key
-    return list_of_dicts
+def best_result(list_of_dicts):
+    sorted_list = sorted(list_of_dicts, key=lambda x: x['released_at'], reverse=True)
+    for dict in sorted_list:
+        if dict['set_type'] in {'core', 'commander', 'expansion'}:
+            return dict
+    return sorted_list[0]
 
 
 if __name__ == '__main__':
-    best_results, other_results = search_bulk_data("opt")
+    best_results, other_results = search_bulk_data("cultivate")
     for card in best_results:
-        print(card['name'], card['id'], card['set'], card['collector_number'], card['prices'])
+        print(card['name'], card['id'], card['set'], card['collector_number'], card['released_at'])
     print(len(best_results))
-    print(get_lowest_price(best_results))
+    print(best_result(best_results))
+    # test_card = get_bulk_data(debug=True)
+    # print(test_card)
+    # test_sets = get_sets(debug=True)
+    # print(test_set)
+    # set_types = set()
+    # for test_set in test_sets:
+    #     set_types.add(test_set['set_type'])
+    # print(set_types)
