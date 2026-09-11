@@ -2,8 +2,8 @@ import json, os, requests, gzip, string
 
 
 def get_bulk_data(debug=False):
-    print('\nremoving old bulk data...')
     folder = 'scryfall-data'
+    print(f"checking for {folder} directory...")
     try:
         os.mkdir(folder)
     except FileExistsError:
@@ -11,6 +11,7 @@ def get_bulk_data(debug=False):
     else:
         print(f"{folder} created")
     extension = '.jsonl.gz'
+    print('\nremoving old bulk data...')
     for file in os.listdir(folder):
         if file.endswith(extension):
             file_path = os.path.join(folder, file)
@@ -48,8 +49,8 @@ def get_bulk_data(debug=False):
 
 
 def get_sets(debug=False):
-    print('\nremoving old sets...')
     folder = 'scryfall-data'
+    print(f"checking for {folder} directory...")
     try:
         os.mkdir(folder)
     except FileExistsError:
@@ -57,6 +58,7 @@ def get_sets(debug=False):
     else:
         print(f"{folder} created")
     extension = '.json'
+    print('\nremoving old sets...')
     for file in os.listdir(folder):
         if file.endswith(extension):
             file_path = os.path.join(folder, file)
@@ -141,11 +143,22 @@ def search_kwargs(file, name, **kwargs):
 
 
 def best_result(list_of_dicts):
+    #TODO what if there are multiple printings of a card in the same set? get the cheapest one.
     sorted_list = sorted(list_of_dicts, key=lambda x: x['released_at'], reverse=True)
     for dict in sorted_list:
         if dict['set_type'] in {'core', 'commander', 'expansion'}:
             return dict
     return sorted_list[0]
+
+
+def mass_entry(multiline_string):
+    list_of_cards = multiline_string.split('\n')
+    for card in list_of_cards:
+        card = card.strip()
+        card = card.split()
+        for info in card:
+            info = clean_str(info)
+    return list_of_cards
 
 
 if __name__ == '__main__':
@@ -154,11 +167,18 @@ if __name__ == '__main__':
     #     print(card['name'], card['id'], card['set'], card['collector_number'], card['released_at'])
     # print(len(best_results))
     # print(best_result(best_results))
-    test_card = get_bulk_data(debug=True)
+    # test_card = get_bulk_data(debug=True)
     # print(test_card)
-    test_sets = get_sets(debug=True)
+    # test_sets = get_sets(debug=True)
     # print(test_set)
     # set_types = set()
     # for test_set in test_sets:
     #     set_types.add(test_set['set_type'])
     # print(set_types)
+    txt = """
+    Cultivate
+    Opt xln
+    Frodo, Sauron's Bane ltr 18
+    """
+    out = mass_entry(txt)
+    print(out)
